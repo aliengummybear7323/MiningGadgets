@@ -19,6 +19,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
+import net.minecraft.util.TriState;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -32,9 +33,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
@@ -60,7 +62,7 @@ public class RenderBlockTileEntity extends BlockEntity {
     private boolean blockAllowed;
 
     public RenderBlockTileEntity(BlockPos pos, BlockState state) {
-        super(Registration.RENDERBLOCK_TILE.get(), pos, state);
+        super(com.direwolf20.mininggadgets.setup.Registration.RENDERBLOCK_TILE.get(), pos, state);
     }
 
     public static boolean blockAllowed(List<ItemStack> drops, List<ItemStack> filters, boolean isWhiteList) {
@@ -102,7 +104,7 @@ public class RenderBlockTileEntity extends BlockEntity {
             entity.spawnParticle();
         }
         //Client only
-        if (entity.level.isClientSide) {
+        if (entity.level.isClientSide()) {
             //Update ticks since last mine on client side for particle renders
             if (entity.playerUUID != null) {
                 if (entity.getPlayer() != null && !entity.getPlayer().isUsingItem()) {
@@ -128,7 +130,7 @@ public class RenderBlockTileEntity extends BlockEntity {
 
         }
         //Server Only
-        if (!entity.level.isClientSide) {
+        if (!entity.level.isClientSide()) {
             if (entity.ticksSinceMine == 1) {
                 //Immediately after player stops mining, stability the shrinking effects and notify players
                 entity.priorDurability = entity.durability;
@@ -184,7 +186,7 @@ public class RenderBlockTileEntity extends BlockEntity {
                 this.freeze(stack);
             }
         }
-        if (!(this.level.isClientSide)) {
+        if (!(this.level.isClientSide())) {
             this.setChanged();
             ServerTickHandler.addToList(this.worldPosition, this.durability, this.level);
             //PacketHandler.sendToAll(new PacketDurabilitySync(pos, dur), world);
@@ -194,9 +196,9 @@ public class RenderBlockTileEntity extends BlockEntity {
 
     private void freeze(ItemStack stack) {
         int freezeCost = Config.UPGRADECOST_FREEZE.get() * -1;
-        var cap = stack.getCapability(Capabilities.EnergyStorage.ITEM);
+        var cap = stack.getCapability(Capabilities.Energy.ITEM,  null);
         if (cap == null) return;
-        int energy = cap.getEnergyStored();
+        int energy = cap.getAmountAsInt();
 
         if (energy == 0) {
             return;
@@ -220,9 +222,10 @@ public class RenderBlockTileEntity extends BlockEntity {
         if (remainingEnergy < costOfOperation) {
             return 0;
         }
-        var cap = stack.getCapability(Capabilities.EnergyStorage.ITEM);
+        var cap = stack.getCapability(Capabilities.Energy.ITEM, null);
         if (cap == null) return 0;
-        cap.receiveEnergy(costOfOperation, false);
+        //TODO
+//        cap.receiveEnergy(costOfOperation, false);
 
         // If the block is just water logged, remove the fluid
         BlockState blockState = world.getBlockState(pos);
@@ -351,20 +354,21 @@ public class RenderBlockTileEntity extends BlockEntity {
     }
 
     @Override
-    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider lookupProvider) {
-        this.loadAdditional(tag, lookupProvider);
+    public void handleUpdateTag(ValueInput input)
+    {
+        this.loadCustomOnly(input);
     }
 
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
-        CompoundTag tag = new CompoundTag();
-        saveAdditional(tag, provider);
-        return tag;
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries)
+    {
+        return saveCustomOnly(registries);
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider lookupProvider) {
-        super.onDataPacket(net, pkt, lookupProvider);
+    public void onDataPacket(Connection net, ValueInput valueInput)
+    {
+        super.onDataPacket(net, valueInput);
     }
 
     public void markDirtyClient() {
@@ -375,46 +379,52 @@ public class RenderBlockTileEntity extends BlockEntity {
         }
     }
 
+    //TODO
     @Override
-    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-        super.loadAdditional(tag, provider);
-        this.renderBlock = NbtUtils.readBlockState(this.level.holderLookup(Registries.BLOCK), tag.getCompound("renderBlock"));
-        this.originalDurability = tag.getInt("originalDurability");
-        this.priorDurability = tag.getInt("priorDurability");
-        this.durability = tag.getInt("durability");
-        this.ticksSinceMine = tag.getInt("ticksSinceMine");
-        if (tag.contains("playerUUID")) {
-            this.playerUUID = tag.getUUID("playerUUID");
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        this.renderBlock = input.read("renderBlock", BlockState.CODEC).orElse(null);
+        this.originalDurability = input.getInt("originalDurability").orElse(0);
+        this.priorDurability = input.getInt("priorDurability").orElse(0);
+        this.durability = input.getInt("durability").orElse(0);
+        this.ticksSinceMine = input.getInt("ticksSinceMine").orElse(0);
+        String id = input.getString("playerUUID").orElse(null);
+        if (id != null) {
+            this.playerUUID = UUID.fromString(id);
         }
-        this.gadgetUpgrades = UpgradeTools.getUpgradesFromTag(tag);
-        this.breakType = MiningProperties.BreakTypes.values()[tag.getByte("breakType")];
-        this.gadgetFilters = MiningProperties.deserializeItemStackList(tag.getCompound("gadgetFilters"), provider);
-        this.gadgetIsWhitelist = tag.getBoolean("gadgetIsWhitelist");
-        this.blockAllowed = tag.getBoolean("blockAllowed");
+        this.gadgetUpgrades = UpgradeTools.getUpgradesFromTag(Objects.requireNonNull(input.read("upgrades", CompoundTag.CODEC).orElse(null)));
+        this.breakType = MiningProperties.BreakTypes.values()[input.getByteOr("breakType", (byte) 0)];
+        //TODO
+//        this.gadgetFilters = MiningProperties.deserializeItemStackList(tag.getCompound("gadgetFilters"), provider);
+        this.gadgetIsWhitelist = input.getBooleanOr("gadgetIsWhitelist", false);
+        this.blockAllowed = input.getBooleanOr("blockAllowed", false);
     }
 
+
     @Override
-    public void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-        super.saveAdditional(tag, provider);
+    protected void saveAdditional(ValueOutput output)
+    {
+        super.saveAdditional(output);
         if (this.renderBlock != null) {
-            tag.put("renderBlock", NbtUtils.writeBlockState(this.renderBlock));
+            output.store("renderBlock", BlockState.CODEC, this.renderBlock);
         }
-        tag.putInt("originalDurability", this.originalDurability);
-        tag.putInt("priorDurability", this.priorDurability);
-        tag.putInt("durability", this.durability);
-        tag.putInt("ticksSinceMine", this.ticksSinceMine);
+        output.putInt("originalDurability", this.originalDurability);
+        output.putInt("priorDurability", this.priorDurability);
+        output.putInt("durability", this.durability);
+        output.putInt("ticksSinceMine", this.ticksSinceMine);
         if (this.playerUUID != null) {
-            tag.putUUID("playerUUID", this.playerUUID);
+            output.putString("playerUUID", this.playerUUID.toString());
         }
-        tag.put("upgrades", UpgradeTools.setUpgradesNBT(this.gadgetUpgrades).getList("upgrades", Tag.TAG_COMPOUND));
-        tag.putByte("breakType", (byte) this.breakType.ordinal());
-        tag.put("gadgetFilters", MiningProperties.serializeItemStackList(this.getGadgetFilters(), provider));
-        tag.putBoolean("gadgetIsWhitelist", this.isGadgetIsWhitelist());
-        tag.putBoolean("blockAllowed", this.blockAllowed);
+        output.store("upgrades", CompoundTag.CODEC, UpgradeTools.setUpgradesNBT(this.gadgetUpgrades));
+        output.putByte("breakType", (byte) this.breakType.ordinal());
+        //TODO
+//        tag.put("gadgetFilters", MiningProperties.serializeItemStackList(this.getGadgetFilters(), provider));
+        output.putBoolean("gadgetIsWhitelist", this.isGadgetIsWhitelist());
+        output.putBoolean("blockAllowed", this.blockAllowed);
     }
 
     private void removeBlock() {
-        if (this.level == null || this.level.isClientSide || this.playerUUID == null) {
+        if (this.level == null || this.level.isClientSide() || this.playerUUID == null) {
             return;
         }
 
@@ -426,7 +436,7 @@ public class RenderBlockTileEntity extends BlockEntity {
         int silk = 0;
         int fortune = 0;
 
-        ItemStack tempTool = new ItemStack(Registration.MININGGADGET.get());
+        ItemStack tempTool = new ItemStack(com.direwolf20.mininggadgets.setup.Registration.MININGGADGET.get());
 
         // If silk is in the upgrades, apply it without a tier.
         if (UpgradeTools.containsActiveUpgradeFromList(this.gadgetUpgrades, Upgrade.SILK)) {
@@ -515,7 +525,7 @@ public class RenderBlockTileEntity extends BlockEntity {
             return;
         }
 
-        if (!this.level.isClientSide) {
+        if (!this.level.isClientSide()) {
             this.level.setBlockAndUpdate(this.worldPosition, Objects.requireNonNullElseGet(this.renderBlock, Blocks.AIR::defaultBlockState));
         }
     }
@@ -532,7 +542,7 @@ public class RenderBlockTileEntity extends BlockEntity {
         int silk = 0;
         int fortune = 0;
 
-        ItemStack tempTool = new ItemStack(Registration.MININGGADGET.get());
+        ItemStack tempTool = new ItemStack(com.direwolf20.mininggadgets.setup.Registration.MININGGADGET.get());
 
         // If silk is in the upgrades, apply it without a tier.
         if (UpgradeTools.containsActiveUpgradeFromList(this.gadgetUpgrades, Upgrade.SILK)) {

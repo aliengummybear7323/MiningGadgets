@@ -5,6 +5,7 @@ import com.direwolf20.mininggadgets.common.containers.handlers.DireItemContainer
 import com.direwolf20.mininggadgets.common.util.CodecHelpers;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -16,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class MGDataComponents {
-    public static final DeferredRegister<DataComponentType<?>> COMPONENTS = DeferredRegister.createDataComponents(MiningGadgets.MOD_ID);
+    public static final DeferredRegister<DataComponentType<?>> COMPONENTS = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, MiningGadgets.MOD_ID);
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<DireItemContainerContents>> ITEMSTACK_HANDLER = COMPONENTS.register("itemstack_handler", () -> DataComponentType.<DireItemContainerContents>builder().persistent(DireItemContainerContents.CODEC).networkSynchronized(DireItemContainerContents.STREAM_CODEC).cacheEncoding().build());
 

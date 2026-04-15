@@ -5,12 +5,12 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public record ChangeFreezeDelayPayload(
         int freezeDelay
 ) implements CustomPacketPayload {
-    public static final Type<ChangeFreezeDelayPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(MiningGadgets.MOD_ID, "change_freeze_delay"));
+    public static final Type<ChangeFreezeDelayPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(MiningGadgets.MOD_ID, "change_freeze_delay"));
 
     @Override
     public Type<ChangeFreezeDelayPayload> type() {

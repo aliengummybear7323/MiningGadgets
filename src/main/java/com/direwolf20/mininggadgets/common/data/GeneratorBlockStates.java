@@ -2,31 +2,39 @@ package com.direwolf20.mininggadgets.common.data;
 
 import com.direwolf20.mininggadgets.common.MiningGadgets;
 import com.direwolf20.mininggadgets.setup.Registration;
-import net.minecraft.data.PackOutput;
-import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.minecraft.client.data.models.BlockModelGenerators;
+import net.minecraft.client.data.models.MultiVariant;
+import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
+import net.minecraft.client.data.models.model.ModelTemplates;
+import net.minecraft.client.data.models.model.TextureMapping;
+import net.minecraft.resources.Identifier;
 
+public class GeneratorBlockStates {
 
-public class GeneratorBlockStates extends BlockStateProvider {
-    public GeneratorBlockStates(PackOutput output, ExistingFileHelper exFileHelper) {
-        super(output, MiningGadgets.MOD_ID, exFileHelper);
+    private final BlockModelGenerators blockModelGenerators;
+
+    public GeneratorBlockStates(BlockModelGenerators blockModelGenerators) {
+        this.blockModelGenerators = blockModelGenerators;
     }
 
-    @Override
-    protected void registerStatesAndModels() {
-        horizontalBlock(Registration.MODIFICATION_TABLE.get(), new ModelFile.UncheckedModelFile(modLoc("block/modificationtable")));
+    public void init() {
+        blockModelGenerators.createTrivialCube(Registration.MINERS_LIGHT.get());
+        blockModelGenerators.createTrivialCube(Registration.RENDER_BLOCK.get());
 
-        // Render block
-        buildCubeAll(Registration.RENDER_BLOCK.get());
-        buildCubeAll(Registration.MINERS_LIGHT.get());
-    }
+        Identifier table = Identifier.fromNamespaceAndPath(MiningGadgets.MOD_ID, "block/modificationtable");
 
-    private void buildCubeAll(Block block) {
-        getVariantBuilder(block).forAllStates(state ->
-                ConfiguredModel.builder().modelFile(cubeAll(block)).build()
+        MultiVariant templateManagerVariant = BlockModelGenerators.plainVariant(table);
+        blockModelGenerators.blockStateOutput.accept(
+                MultiVariantGenerator.dispatch(Registration.MODIFICATION_TABLE.get(), templateManagerVariant)
+                        .with(BlockModelGenerators.ROTATION_HORIZONTAL_FACING)
         );
+
+//        Identifier table = ModelTemplates.CUBE_ORIENTABLE_TOP_BOTTOM.create(
+//                Registration.MODIFICATION_TABLE.get(),
+//                TextureMapping.orientableCube(Registration.MODIFICATION_TABLE.get()),
+//                blockModelGenerators.modelOutput);
+//
+//        MultiVariant templateManagerVariant = BlockModelGenerators.plainVariant(table);
+//        blockModelGenerators.blockStateOutput.accept(MultiVariantGenerator.dispatch(Registration.MODIFICATION_TABLE.get(), templateManagerVariant).with(BlockModelGenerators.ROTATION_HORIZONTAL_FACING));
     }
 }

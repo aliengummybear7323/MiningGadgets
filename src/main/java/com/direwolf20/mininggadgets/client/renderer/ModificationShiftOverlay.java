@@ -10,7 +10,6 @@ import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -42,58 +41,59 @@ public class ModificationShiftOverlay {
         }
 
         // Finally, lets try and render something if we have a gadget in the main slot
-        ItemStack stack = ((ModificationTableTileEntity) blockEntity).handler.getStackInSlot(0);
-        if (stack.isEmpty() || !(stack.getItem() instanceof MiningGadget)) {
-            return;
-        }
-
-        List<Upgrade> upgrades = UpgradeTools.getUpgrades(stack);
-        if (upgrades.isEmpty()) {
-            return;
-        }
-
-        Vec3 view = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
-        BlockPos blockPos = ((BlockHitResult) pick).getBlockPos();
-
-        double distance = player.getPosition(evt.getPartialTick().getRealtimeDeltaTicks()).distanceTo(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
-        float scaleFactor = Math.max(.2f, ((float) distance / 10) + .1f);
-
-        PoseStack matrix = evt.getPoseStack();
-        matrix.pushPose();
-        matrix.translate(-view.x, -view.y, -view.z);
-        matrix.translate(blockPos.getX() + .5f, blockPos.getY() + 1, blockPos.getZ() + .5f);
-        matrix.scale(scaleFactor, scaleFactor, scaleFactor);
-        matrix.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation());
-
-        MultiBufferSource.BufferSource outlineLayerBuffer = Minecraft.getInstance().renderBuffers().bufferSource();
-
-        int x = 0, y = 0;
-
-        // Fixes centering issues with 1 or 2 upgrades
-        float offset = upgrades.size() / 3 > 0
-            ? -1.15f
-            : (upgrades.size() > 1
-                ? -(upgrades.size() / 3f)
-                : -.2f);
-
-        for (Upgrade upgrade : upgrades) {
-            matrix.pushPose();
-            matrix.translate(offset + x, y, 0);
-            matrix.mulPose(Axis.YP.rotationDegrees(90));
-            matrix.mulPose(Axis.XP.rotationDegrees(26));
-            ItemStack upgradeStack = new ItemStack(upgrade.getCardItem().get());
-            BakedModel model = Minecraft.getInstance().getItemRenderer().getModel(upgradeStack, Minecraft.getInstance().level, null, 0);
-            Minecraft.getInstance().getItemRenderer().render(upgradeStack, ItemDisplayContext.FIRST_PERSON_LEFT_HAND, false, matrix, outlineLayerBuffer, 15728880, OverlayTexture.NO_OVERLAY, model);
-            x += 1;
-            if (x > 2) {
-                x = 0;
-                y += 1;
-            }
-            matrix.popPose();
-        }
-
-        outlineLayerBuffer.endBatch();
-
-        matrix.popPose();
+        //TODO
+//        ItemStack stack = ((ModificationTableTileEntity) blockEntity).handler.getStackInSlot(0);
+//        if (stack.isEmpty() || !(stack.getItem() instanceof MiningGadget)) {
+//            return;
+//        }
+//
+//        List<Upgrade> upgrades = UpgradeTools.getUpgrades(stack);
+//        if (upgrades.isEmpty()) {
+//            return;
+//        }
+//
+//        Vec3 view = Minecraft.getInstance().gameRenderer.getMainCamera().position();
+//        BlockPos blockPos = ((BlockHitResult) pick).getBlockPos();
+//
+//        double distance = player.getPosition(evt.getPartialTick().getRealtimeDeltaTicks()).distanceTo(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
+//        float scaleFactor = Math.max(.2f, ((float) distance / 10) + .1f);
+//
+//        PoseStack matrix = evt.getPoseStack();
+//        matrix.pushPose();
+//        matrix.translate(-view.x, -view.y, -view.z);
+//        matrix.translate(blockPos.getX() + .5f, blockPos.getY() + 1, blockPos.getZ() + .5f);
+//        matrix.scale(scaleFactor, scaleFactor, scaleFactor);
+//        matrix.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation());
+//
+//        MultiBufferSource.BufferSource outlineLayerBuffer = Minecraft.getInstance().renderBuffers().bufferSource();
+//
+//        int x = 0, y = 0;
+//
+//        // Fixes centering issues with 1 or 2 upgrades
+//        float offset = upgrades.size() / 3 > 0
+//            ? -1.15f
+//            : (upgrades.size() > 1
+//                ? -(upgrades.size() / 3f)
+//                : -.2f);
+//
+//        for (Upgrade upgrade : upgrades) {
+//            matrix.pushPose();
+//            matrix.translate(offset + x, y, 0);
+//            matrix.mulPose(Axis.YP.rotationDegrees(90));
+//            matrix.mulPose(Axis.XP.rotationDegrees(26));
+//            ItemStack upgradeStack = new ItemStack(upgrade.getCardItem().get());
+//            BakedModel model = Minecraft.getInstance().getItemRenderer().getModel(upgradeStack, Minecraft.getInstance().level, null, 0);
+//            Minecraft.getInstance().getItemRenderer().render(upgradeStack, ItemDisplayContext.FIRST_PERSON_LEFT_HAND, false, matrix, outlineLayerBuffer, 15728880, OverlayTexture.NO_OVERLAY, model);
+//            x += 1;
+//            if (x > 2) {
+//                x = 0;
+//                y += 1;
+//            }
+//            matrix.popPose();
+//        }
+//
+//        outlineLayerBuffer.endBatch();
+//
+//        matrix.popPose();
     }
 }

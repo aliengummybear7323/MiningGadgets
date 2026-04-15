@@ -3,7 +3,6 @@ package com.direwolf20.mininggadgets.common.blocks;
 import com.direwolf20.mininggadgets.setup.Registration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
@@ -12,32 +11,32 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.capabilities.Capabilities;
+import org.jspecify.annotations.NonNull;
 
 import javax.annotation.Nullable;
 import java.util.stream.Stream;
 
 public class ModificationTable extends Block implements EntityBlock {
-    public static DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
-    public ModificationTable() {
-        super(Properties.of().strength(2.0f));
+    public ModificationTable(Properties properties) {
+        super(properties);
 
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
+    public @NonNull VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
         return Shape.getFromFacing(state.getValue(FACING));
     }
 
@@ -56,8 +55,8 @@ public class ModificationTable extends Block implements EntityBlock {
     }
 
     @Override
-    public InteractionResult useWithoutItem(BlockState blockState, Level level, BlockPos blockPos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide) {
+    public @NonNull InteractionResult useWithoutItem(BlockState blockState, Level level, BlockPos blockPos, Player player, BlockHitResult hit) {
+        if (!level.isClientSide()) {
             BlockEntity tileEntity = level.getBlockEntity(blockPos);
             if (tileEntity instanceof MenuProvider) {
                 player.openMenu((MenuProvider) tileEntity, tileEntity.getBlockPos());
@@ -69,20 +68,21 @@ public class ModificationTable extends Block implements EntityBlock {
         return InteractionResult.SUCCESS;
     }
 
-    @Override
-    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (newState.getBlock() != this) {
-            BlockEntity tile = worldIn.getBlockEntity(pos);
-            if (tile != null) {
-                var cap = tile.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, tile.getBlockPos(), tile.getBlockState(), tile, null);
-                if (cap == null) return;
-                for (int i = 0; i < cap.getSlots(); ++i) {
-                    Containers.dropItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), cap.getStackInSlot(i));
-                }
-                super.onRemove(state, worldIn, pos, newState, isMoving);
-            }
-        }
-    }
+    //TODO
+//    @Override
+//    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+//        if (newState.getBlock() != this) {
+//            BlockEntity tile = worldIn.getBlockEntity(pos);
+//            if (tile != null) {
+//                var cap = tile.getLevel().getCapability(Capabilities.Item.BLOCK, tile.getBlockPos(), tile.getBlockState(), tile, null);
+//                if (cap == null) return;
+//                for (int i = 0; i < cap.getSlots(); ++i) {
+//                    Containers.dropItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), cap.getStackInSlot(i));
+//                }
+//                super.onRemove(state, worldIn, pos, newState, isMoving);
+//            }
+//        }
+//    }
 
     private enum Shape {
         NORTH(Stream.of(Block.box(2, 11, 12, 14, 16, 16), Block.box(0, 0, 0, 16, 10, 16), Block.box(1, 10, 1, 15, 11, 9), Block.box(0, 10, 11, 16, 11, 16), Block.box(0, 11, 0, 16, 12, 10), Block.box(13, 12, 2, 14, 13, 8)).reduce((v1, v2) -> Shapes.join(v1, v2, BooleanOp.OR)).get()),

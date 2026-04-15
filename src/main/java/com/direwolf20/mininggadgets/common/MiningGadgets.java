@@ -1,13 +1,9 @@
 package com.direwolf20.mininggadgets.common;
 
-import com.direwolf20.mininggadgets.common.capabilities.EnergyStorageItemstack;
 import com.direwolf20.mininggadgets.common.items.MiningGadget;
 import com.direwolf20.mininggadgets.common.network.PacketHandler;
 import com.direwolf20.mininggadgets.common.tiles.ModificationTableTileEntity;
-import com.direwolf20.mininggadgets.setup.ClientSetup;
-import com.direwolf20.mininggadgets.setup.Config;
-import com.direwolf20.mininggadgets.setup.ModSetup;
-import com.direwolf20.mininggadgets.setup.Registration;
+import com.direwolf20.mininggadgets.setup.*;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.*;
@@ -15,11 +11,12 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.energy.ItemAccessEnergyHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -39,21 +36,20 @@ public class MiningGadgets
         NeoForge.EVENT_BUS.register(this);
         event.addListener(PacketHandler::registerNetworking);
         event.addListener(this::registerCapabilities);
-
-        if (FMLLoader.getDist().isClient()) {
-            event.addListener(ClientSetup::init);
-        }
     }
 
     private void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerItem(Capabilities.EnergyStorage.ITEM, (itemStack, context) -> new EnergyStorageItemstack(((MiningGadget) itemStack.getItem()).getEnergyMax(), itemStack),
+        event.registerItem(Capabilities.Energy.ITEM,
+                (itemStack, itemAccess) -> new ItemAccessEnergyHandler(
+                        itemAccess != null ? itemAccess : ItemAccess.forStack(itemStack),
+                        MGDataComponents.FORGE_ENERGY.get(),
+                        ((MiningGadget) itemStack.getItem()).getEnergyMax()),
                 Registration.MININGGADGET.get(),
                 Registration.MININGGADGET_FANCY.get(),
                 Registration.MININGGADGET_SIMPLE.get()
         );
-        event.registerBlock(Capabilities.ItemHandler.BLOCK,
+        event.registerBlock(Capabilities.Item.BLOCK,
                 (level, pos, state, be, side) -> ((ModificationTableTileEntity) be).handler,
-                // blocks to register for
                 Registration.MODIFICATION_TABLE.get());
     }
 

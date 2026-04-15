@@ -18,6 +18,7 @@ public class GeneratorLanguage extends LanguageProvider {
         addItem(Registration.MININGGADGET_SIMPLE, "Mining Gadget MK1");
         addItem(Registration.MININGGADGET_FANCY, "Mining Gadget MK2");
         addItem(Registration.UPGRADE_EMPTY, "Blank Upgrade Module");
+        addItem(Registration.MODIFICATION_TABLE_ITEM, "Modification Table");
 
         // This should always match the start of below upgrade names. I use this
         // to actively replace the start of the word. (it's an exact search so this should

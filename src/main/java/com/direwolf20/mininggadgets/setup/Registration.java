@@ -19,22 +19,26 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.function.Supplier;
 
 public class Registration {
     public static final Item.Properties ITEM_GROUP = new Item.Properties();
     /**
      * Deferred Registers for the our Main class to load.
      */
-    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(Registries.BLOCK, MiningGadgets.MOD_ID);
+    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MiningGadgets.MOD_ID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, MiningGadgets.MOD_ID);
     public static final DeferredRegister<MenuType<?>> CONTAINERS = DeferredRegister.create(Registries.MENU, MiningGadgets.MOD_ID);
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, MiningGadgets.MOD_ID);
+    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MiningGadgets.MOD_ID);
     // We have a separate register just to contain all of the upgrades for quick reference
-    public static final DeferredRegister<Item> UPGRADE_ITEMS = DeferredRegister.create(Registries.ITEM, MiningGadgets.MOD_ID);
+    public static final DeferredRegister.Items UPGRADE_ITEMS = DeferredRegister.createItems(MiningGadgets.MOD_ID);
 
 
     public static void init(IEventBus eventBus) {
@@ -51,24 +55,30 @@ public class Registration {
     /**
      * Register our blocks to the above registers to be loaded when the mod is initialized
      */
-    public static final DeferredHolder<Block, RenderBlock> RENDER_BLOCK = BLOCKS.register("renderblock", RenderBlock::new);
-    public static final DeferredHolder<Block, MinersLight> MINERS_LIGHT = BLOCKS.register("minerslight", MinersLight::new);
-    public static final DeferredHolder<Block, ModificationTable> MODIFICATION_TABLE = BLOCKS.register("modificationtable", ModificationTable::new);
+    public static final DeferredHolder<Block, RenderBlock> RENDER_BLOCK = BLOCKS.registerBlock("renderblock", RenderBlock::new, () -> BlockBehaviour.Properties.of()
+            .strength(50.0F, 1200.0F)
+            .noOcclusion()
+            .pushReaction(PushReaction.BLOCK)
+            .isRedstoneConductor((a, b, c) -> false));
+
+    public static final DeferredHolder<Block, MinersLight> MINERS_LIGHT = BLOCKS.registerBlock("minerslight", MinersLight::new, () -> Block.Properties.of().noCollision().strength(0.0f).lightLevel(e -> 14).replaceable());
+
+    public static final DeferredHolder<Block, ModificationTable> MODIFICATION_TABLE = BLOCKS.registerBlock("modificationtable", ModificationTable::new, () -> BlockBehaviour.Properties.of().strength(2.0f));
 
     /**
      * TileEntity Registers to the above deferred registers to be loaded in from the mods main class.
      */
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RenderBlockTileEntity>> RENDERBLOCK_TILE = BLOCK_ENTITIES.register("renderblock", () -> BlockEntityType.Builder.of(RenderBlockTileEntity::new, RENDER_BLOCK.get()).build(null));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ModificationTableTileEntity>> MODIFICATIONTABLE_TILE = BLOCK_ENTITIES.register("modificationtable", () -> BlockEntityType.Builder.of(ModificationTableTileEntity::new, MODIFICATION_TABLE.get()).build(null));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RenderBlockTileEntity>> RENDERBLOCK_TILE = BLOCK_ENTITIES.register("renderblock", () -> new BlockEntityType<>(RenderBlockTileEntity::new, RENDER_BLOCK.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ModificationTableTileEntity>> MODIFICATIONTABLE_TILE = BLOCK_ENTITIES.register("modificationtable", () -> new BlockEntityType<>(ModificationTableTileEntity::new, MODIFICATION_TABLE.get()));
 
     // Items
-    public static final DeferredHolder<Item, MiningGadget> MININGGADGET_SIMPLE = ITEMS.register("mininggadget_simple", MiningGadget::new);
-    public static final DeferredHolder<Item, MiningGadget> MININGGADGET_FANCY = ITEMS.register("mininggadget_fancy", MiningGadget::new);
-    public static final DeferredHolder<Item, MiningGadget> MININGGADGET = ITEMS.register("mininggadget", MiningGadget::new);
+    public static final DeferredHolder<Item, MiningGadget> MININGGADGET_SIMPLE = ITEMS.registerItem("mininggadget_simple", MiningGadget::new, () -> new Item.Properties().stacksTo(1).setNoCombineRepair());
+    public static final DeferredHolder<Item, MiningGadget> MININGGADGET_FANCY = ITEMS.registerItem("mininggadget_fancy", MiningGadget::new, () -> new Item.Properties().stacksTo(1).setNoCombineRepair());
+    public static final DeferredHolder<Item, MiningGadget> MININGGADGET = ITEMS.registerItem("mininggadget", MiningGadget::new, () -> new Item.Properties().stacksTo(1).setNoCombineRepair());
 
-    // Block items
-    public static final DeferredHolder<Item, BlockItem> MODIFICATION_TABLE_ITEM = ITEMS.register("modificationtable", () -> new BlockItem(MODIFICATION_TABLE.get(), ITEM_GROUP));
-    public static final DeferredHolder<Item, BlockItem> MINERS_LIGHT_ITEM = ITEMS.register("minerslight", () -> new BlockItem(MINERS_LIGHT.get(), ITEM_GROUP.stacksTo(1)));
+    public static final Supplier<Item> MODIFICATION_TABLE_ITEM = ITEMS.registerItem("modificationtable", props -> new BlockItem(MODIFICATION_TABLE.get(), props), Item.Properties::new);
+
+    public static final Supplier<Item> MINERS_LIGHT_ITEM = ITEMS.registerItem("minerslight", props -> new BlockItem(MINERS_LIGHT.get(), props), Item.Properties::new);
 
     /**
      * Upgrades are a bit ugly.. Soz
