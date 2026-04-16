@@ -1,5 +1,6 @@
 package com.direwolf20.mininggadgets.common.items;
 
+import com.direwolf20.mininggadgets.client.ClientSounds;
 import com.direwolf20.mininggadgets.client.OurKeys;
 import com.direwolf20.mininggadgets.client.particles.playerparticle.PlayerParticleData;
 import com.direwolf20.mininggadgets.client.screens.ModScreens;
@@ -8,14 +9,12 @@ import com.direwolf20.mininggadgets.common.items.gadget.MiningCollect;
 import com.direwolf20.mininggadgets.common.items.gadget.MiningProperties;
 import com.direwolf20.mininggadgets.common.items.upgrade.Upgrade;
 import com.direwolf20.mininggadgets.common.items.upgrade.UpgradeTools;
-import com.direwolf20.mininggadgets.common.sounds.LaserLoopSound;
 import com.direwolf20.mininggadgets.common.sounds.OurSounds;
 import com.direwolf20.mininggadgets.common.tiles.RenderBlockTileEntity;
 import com.direwolf20.mininggadgets.common.util.CodecHelpers;
 import com.direwolf20.mininggadgets.common.util.MagicHelpers;
 import com.direwolf20.mininggadgets.common.util.VectorHelper;
 import com.direwolf20.mininggadgets.setup.Config;
-import com.direwolf20.mininggadgets.setup.MGDataComponents;
 import com.direwolf20.mininggadgets.setup.Registration;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.ChatFormatting;
@@ -47,8 +46,6 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.level.BlockEvent;
@@ -63,7 +60,6 @@ import java.util.function.Consumer;
 
 public class MiningGadget extends Item {
     private final Random rand = new Random();
-    private LaserLoopSound laserLoopSound;
 
     public MiningGadget(Item.Properties properties) {
         super(properties);
@@ -311,27 +307,7 @@ public class MiningGadget extends Item {
             world.sendParticles(ParticleTypes.SMOKE, sourcePos.getX() + randomTX, sourcePos.getY() + randomTY, sourcePos.getZ() + randomTZ, 1, 0D, 0D, 0D, 0.0D);
     }
 
-    public void playLoopSound(LivingEntity player, ItemStack stack) {
-        float volume = MiningProperties.getVolume(stack);
-        Player myplayer = Minecraft.getInstance().player;
-        if (myplayer.equals(player)) {
-            if (volume != 0.0f) {
-                if (stack.getHoverName().getString().toLowerCase(Locale.ROOT).contains("mongo")) {
-                    if (player.level().getGameTime() % 5 == 0)
-                        if (rand.nextDouble() > 0.005d)
-                            player.playSound(SoundEvents.STONE_HIT, volume * 0.5f, 1f);
-                        else
-                            player.playSound(SoundEvents.CREEPER_PRIMED, volume * 1f, 1f);
-                }
-                else {
-                    if (laserLoopSound == null) {
-                        laserLoopSound = new LaserLoopSound((Player) player, volume, player.level().getRandom());
-                        Minecraft.getInstance().getSoundManager().play(laserLoopSound);
-                    }
-                }
-            }
-        }
-    }
+
 
     @Override
     public void onUseTick(Level world, LivingEntity livingEntity, ItemStack stack, int count)
@@ -341,7 +317,7 @@ public class MiningGadget extends Item {
         Player player = (Player) livingEntity;
         //Server and Client side
         if (world.isClientSide()) {
-            this.playLoopSound(player, stack);
+            ClientSounds.playLoopSound(player, stack, this.rand);
         }
 
         if (!MiningProperties.getCanMine(stack))
@@ -572,12 +548,12 @@ public class MiningGadget extends Item {
     @Override
     public boolean releaseUsing(ItemStack stack, Level worldIn, LivingEntity entityLiving, int timeLeft) {
         if (worldIn.isClientSide()) {
-            if (laserLoopSound != null) {
+            if (ClientSounds.laserLoopSound != null) {
                 float volume = MiningProperties.getVolume(stack);
-                if (volume != 0.0f && !laserLoopSound.isStopped()) {
+                if (volume != 0.0f && !ClientSounds.laserLoopSound.isStopped()) {
                     entityLiving.playSound(OurSounds.LASER_END.get(), volume * 0.5f, 1f);
                 }
-                laserLoopSound = null;
+                ClientSounds.laserLoopSound = null;
             }
         }
 

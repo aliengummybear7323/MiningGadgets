@@ -62,6 +62,8 @@ public class ModificationTableCommands {
                     var cap = laser.getCapability(Capabilities.Energy.ITEM, null);
                     if (cap == null) return;
 //                    ((EnergyStorageItemstack) cap).updatedMaxEnergy(power.getPower());
+
+
 //                    if (card.getTier() == Upgrade.BATTERY_CREATIVE.getTier()) {
 //                        ((EnergyStorageItemstack) cap).receiveEnergy(((EnergyStorageItemstack) cap).getMaxEnergyStored() - ((EnergyStorageItemstack) cap).getEnergyStored(), false);
 //                    }
