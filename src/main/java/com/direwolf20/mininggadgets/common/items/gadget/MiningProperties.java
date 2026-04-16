@@ -191,8 +191,9 @@ public class MiningProperties {
         return gadget.getOrDefault(MGDataComponents.FREEZE_DELAY, 0);
     }
 
-    public static void setBatteryTier(ItemStack gadget, int tier) {
+    public static ItemStack setBatteryTier(ItemStack gadget, int tier) {
         gadget.set(MGDataComponents.BATTERY_TIER, tier);
+        return gadget;
     }
 
     public static int getBatteryTier(ItemStack gadget) {

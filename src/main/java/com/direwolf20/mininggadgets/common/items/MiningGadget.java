@@ -8,6 +8,7 @@ import com.direwolf20.mininggadgets.common.blocks.RenderBlock;
 import com.direwolf20.mininggadgets.common.items.gadget.MiningCollect;
 import com.direwolf20.mininggadgets.common.items.gadget.MiningProperties;
 import com.direwolf20.mininggadgets.common.items.upgrade.Upgrade;
+import com.direwolf20.mininggadgets.common.items.upgrade.UpgradeBatteryLevels;
 import com.direwolf20.mininggadgets.common.items.upgrade.UpgradeTools;
 import com.direwolf20.mininggadgets.common.sounds.OurSounds;
 import com.direwolf20.mininggadgets.common.tiles.RenderBlockTileEntity;
@@ -49,6 +50,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.NonNull;
 
@@ -65,13 +67,19 @@ public class MiningGadget extends Item {
         super(properties);
     }
 
-    public int getEnergyMax() {
+    public int getEnergyMax(ItemStack stack) {
+        if (stack == null) return Config.MININGGADGET_MAXPOWER.get();
+        int tier = MiningProperties.getBatteryTier(stack);
+        if (tier > 0) {
+            var value = UpgradeBatteryLevels.getBatteryByLevel(tier);
+            if (value.isPresent()) return value.get().getPower();
+        }
         return Config.MININGGADGET_MAXPOWER.get();
     }
 
     @Override
     public int getMaxDamage(ItemStack stack) {
-        return this.getEnergyMax();
+        return this.getEnergyMax(stack);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.direwolf20.mininggadgets.common;
 
+import com.direwolf20.mininggadgets.common.capabilities.GadgetEnergyHandler;
 import com.direwolf20.mininggadgets.common.items.MiningGadget;
 import com.direwolf20.mininggadgets.common.network.PacketHandler;
 import com.direwolf20.mininggadgets.common.tiles.ModificationTableTileEntity;
@@ -40,10 +41,10 @@ public class MiningGadgets
 
     private void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerItem(Capabilities.Energy.ITEM,
-                (itemStack, itemAccess) -> new ItemAccessEnergyHandler(
+                (itemStack, itemAccess) -> new GadgetEnergyHandler(
                         itemAccess != null ? itemAccess : ItemAccess.forStack(itemStack),
                         MGDataComponents.FORGE_ENERGY.get(),
-                        ((MiningGadget) itemStack.getItem()).getEnergyMax()),
+                        ((MiningGadget) itemStack.getItem()).getEnergyMax(itemStack)),
                 Registration.MININGGADGET.get(),
                 Registration.MININGGADGET_FANCY.get(),
                 Registration.MININGGADGET_SIMPLE.get()
