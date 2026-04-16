@@ -2,7 +2,7 @@ on:
   push:
     branches:
       - 'mc/*'
-      - 'main'
+      - 'master'
 
 jobs:
   build:
