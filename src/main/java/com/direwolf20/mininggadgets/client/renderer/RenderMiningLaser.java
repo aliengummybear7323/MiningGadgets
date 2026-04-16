@@ -7,6 +7,7 @@ import com.direwolf20.mininggadgets.common.items.upgrade.Upgrade;
 import com.direwolf20.mininggadgets.common.items.upgrade.UpgradeTools;
 import com.direwolf20.mininggadgets.common.util.CodecHelpers;
 import com.direwolf20.mininggadgets.setup.Registration;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -117,7 +118,6 @@ public class RenderMiningLaser {
         builder = buffer.getBuffer(MyRenderType.LASER_MAIN_CORE);
         drawBeam(stack, xOffset, yOffset, zOffset, builder, positionMatrix, matrixNormal, thickness/2, activeHand, distance, v, v + distance * 1.5, ticks, beam2r,beam2g,beam2b,1f);
         matrix.popPose();
-//        RenderSystem.disableDepthTest();
         buffer.endBatch();
     }
 
