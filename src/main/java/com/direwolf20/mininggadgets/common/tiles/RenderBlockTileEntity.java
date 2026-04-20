@@ -40,6 +40,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 
 import java.util.*;
 
@@ -456,7 +457,7 @@ public class RenderBlockTileEntity extends BlockEntity {
         }
 
         // Fire an event for other mods that we've just broken the block
-        BlockEvent.BreakEvent breakEvent = fixForgeEventBreakBlock(this.renderBlock, player, level, worldPosition, tempTool);
+        BreakBlockEvent breakEvent = fixForgeEventBreakBlock(this.renderBlock, player, level, worldPosition, tempTool);
         NeoForge.EVENT_BUS.post(breakEvent);
         // Someone cancelled out break event
         if (breakEvent.isCanceled()) {
@@ -515,8 +516,10 @@ public class RenderBlockTileEntity extends BlockEntity {
         }
     }
 
-    private static BlockEvent.BreakEvent fixForgeEventBreakBlock(BlockState state, Player player, Level world, BlockPos pos, ItemStack tool) {
-        BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(world, pos, state, player);
+
+
+    private static BreakBlockEvent fixForgeEventBreakBlock(BlockState state, Player player, Level world, BlockPos pos, ItemStack tool) {
+        BreakBlockEvent event = new BreakBlockEvent(world, pos, state, player);
         return event;
     }
 

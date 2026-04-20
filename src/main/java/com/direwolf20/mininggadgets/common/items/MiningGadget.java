@@ -50,6 +50,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.NonNull;
@@ -195,7 +196,7 @@ public class MiningGadget extends Item {
         if (!player.mayBuild() || !world.mayInteract(player, pos))
             return false;
 
-        if (NeoForge.EVENT_BUS.post(new BlockEvent.BreakEvent(world, pos, state, player)).isCanceled())
+        if (NeoForge.EVENT_BUS.post(new BreakBlockEvent(world, pos, state, player)).isCanceled())
             return false;
 
         return canMine(tool);
