@@ -61,7 +61,6 @@ import java.util.Random;
 
 public class MiningGadget extends Item {
     private final Random rand = new Random();
-    private LaserLoopSound laserLoopSound;
     //private static int energyPerItem = 15;
 
     public MiningGadget() {
@@ -334,10 +333,9 @@ public class MiningGadget extends Item {
                             player.playSound(SoundEvents.CREEPER_PRIMED, volume * 1f, 1f);
                 }
                 else {
-                    if (laserLoopSound == null) {
-                        laserLoopSound = new LaserLoopSound((Player) player, volume, player.level().random);
-                        Minecraft.getInstance().getSoundManager().play(laserLoopSound);
-                    }
+                    Minecraft.getInstance().getSoundManager().play(
+                            new LaserLoopSound((Player) player, volume, player.level().random)
+                    );
                 }
             }
         }
@@ -576,12 +574,9 @@ public class MiningGadget extends Item {
     @Override
     public void releaseUsing(ItemStack stack, Level worldIn, LivingEntity entityLiving, int timeLeft) {
         if (worldIn.isClientSide) {
-            if (laserLoopSound != null) {
-                float volume = MiningProperties.getVolume(stack);
-                if (volume != 0.0f && !laserLoopSound.isStopped()) {
-                    entityLiving.playSound(OurSounds.LASER_END.get(), volume * 0.5f, 1f);
-                }
-                laserLoopSound = null;
+            float volume = MiningProperties.getVolume(stack);
+            if (volume != 0.0f) {
+                entityLiving.playSound(OurSounds.LASER_END.get(), volume * 0.5f, 1f);
             }
         }
 
