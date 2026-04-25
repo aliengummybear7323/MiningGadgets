@@ -1,7 +1,7 @@
 package com.direwolf20.mininggadgets.common.containers;
 
 
-import com.direwolf20.mininggadgets.common.capabilities.EnergyStorageItemstack;
+import com.direwolf20.mininggadgets.common.capabilities.GadgetEnergyHandler;
 import com.direwolf20.mininggadgets.common.items.MiningGadget;
 import com.direwolf20.mininggadgets.common.items.UpgradeCard;
 import com.direwolf20.mininggadgets.common.items.gadget.MiningProperties;
@@ -11,14 +11,16 @@ import com.direwolf20.mininggadgets.common.items.upgrade.UpgradeTools;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.transfer.energy.ItemAccessEnergyHandler;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 import java.util.List;
 
 public class ModificationTableCommands {
     public static boolean insertButton(ModificationTableContainer container, ItemStack upgrade) {
-        Slot laserSlot = container.slots.get(0);
-        ItemStack laser = laserSlot.getItem();
+        ItemStack laser = container.getSlot(0).getItem();
 
         if (laser.getItem() instanceof MiningGadget && upgrade.getItem() instanceof UpgradeCard) {
             Upgrade card = ((UpgradeCard) upgrade.getItem()).getUpgrade();
@@ -51,29 +53,35 @@ public class ModificationTableCommands {
             if (hasFortune && card.getBaseName().equals(Upgrade.SILK.getBaseName()) || hasSilk && card.getBaseName().equals(Upgrade.FORTUNE_1.getBaseName()))
                 ((UpgradeCard) upgrade.getItem()).getUpgrade().setEnabled(false);
 
-            MiningGadget.applyUpgrade(laser, (UpgradeCard) upgrade.getItem());
+            ItemStack upgraded = MiningGadget.applyUpgrade(laser, (UpgradeCard) upgrade.getItem());
+            container.setItem(0, 0, upgraded);
 
             // Did we just insert a battery upgrade?
             if(card.getBaseName().equals(Upgrade.BATTERY_1.getBaseName())) {
                 UpgradeBatteryLevels.getBatteryByLevel(card.getTier()).ifPresent(power -> {
-                    var cap = laser.getCapability(Capabilities.EnergyStorage.ITEM);
+                    var cap = laser.getCapability(Capabilities.Energy.ITEM, null);
                     if (cap == null) return;
-                    ((EnergyStorageItemstack) cap).updatedMaxEnergy(power.getPower());
+                    try (Transaction t = Transaction.openRoot()) {
+                        ((GadgetEnergyHandler) cap).updateCapacity(power.getPower(), t);
+                        t.commit();
+                    }
+
                     if (card.getTier() == Upgrade.BATTERY_CREATIVE.getTier()) {
-                        cap.receiveEnergy(cap.getMaxEnergyStored() - cap.getEnergyStored(), false);
+                        try (Transaction tx = Transaction.openRoot()) {
+                            cap.insert(cap.getAmountAsInt() - cap.getAmountAsInt(), tx);
+                            tx.commit();
+                        }
                     }
                 });
-                MiningProperties.setBatteryTier(laser, card.getTier());
+                container.setItem(0, 0, MiningProperties.setBatteryTier(laser, card.getTier()));
             }
-
             return true;
         }
-
         return false;
     }
 
     public static void extractButton(ModificationTableContainer container, ServerPlayer player, String upgradeName) {
-        Slot laserSlot = container.slots.get(0);
+        Slot laserSlot = container.getSlot(0);
         ItemStack laser = laserSlot.getItem();
 
         if (!(laser.getItem() instanceof MiningGadget))
@@ -86,7 +94,7 @@ public class ModificationTableCommands {
             if( !upgrade.getName().equals(upgradeName) )
                 return;
 
-            UpgradeTools.removeUpgrade(laser, upgrade);
+            ItemStack upgraded = UpgradeTools.removeUpgrade(laser, upgrade);
 
             boolean success = player.getInventory().add(new ItemStack(upgrade.getCardItem().get(), 1));
             if (!success) {
@@ -106,10 +114,14 @@ public class ModificationTableCommands {
 
             if (upgrade.getBaseName().equals(Upgrade.BATTERY_1.getBaseName())) {
                 MiningProperties.setBatteryTier(laser, 0);
-                var cap = laser.getCapability(Capabilities.EnergyStorage.ITEM);
+                var cap = laser.getCapability(Capabilities.Energy.ITEM, null);
                 if (cap == null) return;
-                ((EnergyStorageItemstack) cap).updatedMaxEnergy(UpgradeBatteryLevels.BATTERY.getPower());
+                try (Transaction t = Transaction.openRoot()) {
+                    ((GadgetEnergyHandler) cap).updateCapacity(UpgradeBatteryLevels.BATTERY.getPower(), t);
+                    t.commit();
+                }
             }
+            container.setItem(0, 0, upgraded);
         });
     }
 }

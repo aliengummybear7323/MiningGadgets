@@ -5,12 +5,12 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public record ChangeRangePayload(
         int range
 ) implements CustomPacketPayload {
-    public static final Type<ChangeRangePayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(MiningGadgets.MOD_ID, "change_range"));
+    public static final Type<ChangeRangePayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(MiningGadgets.MOD_ID, "change_range"));
 
     @Override
     public Type<ChangeRangePayload> type() {

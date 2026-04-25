@@ -7,7 +7,6 @@ import com.direwolf20.mininggadgets.setup.MGDataComponents;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -192,8 +191,9 @@ public class MiningProperties {
         return gadget.getOrDefault(MGDataComponents.FREEZE_DELAY, 0);
     }
 
-    public static void setBatteryTier(ItemStack gadget, int tier) {
+    public static ItemStack setBatteryTier(ItemStack gadget, int tier) {
         gadget.set(MGDataComponents.BATTERY_TIER, tier);
+        return gadget;
     }
 
     public static int getBatteryTier(ItemStack gadget) {
@@ -214,10 +214,11 @@ public class MiningProperties {
     // mostly stolen from ItemStackHandler
     public static List<ItemStack> deserializeItemStackList(CompoundTag nbt, HolderLookup.Provider provider) {
         List<ItemStack> stacks = new ArrayList<>();
-        ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);
+        //TODO
+        ListTag tagList = nbt.getList("Items").get();
         for (int i = 0; i < tagList.size(); i++) {
-            CompoundTag itemTags = tagList.getCompound(i);
-            stacks.add(ItemStack.parse(provider, itemTags).orElse(ItemStack.EMPTY));
+            CompoundTag itemTags = tagList.getCompound(i).get();
+//            stacks.add(ItemStack.parse(provider, itemTags).orElse(ItemStack.EMPTY));
         }
 
         return stacks;
@@ -229,7 +230,8 @@ public class MiningProperties {
             if (!stacks.get(i).isEmpty()) {
                 CompoundTag itemTag = new CompoundTag();
                 itemTag.putInt("Slot", i);
-                nbtTagList.add(stacks.get(i).save(provider, itemTag));
+                //TODO
+//                nbtTagList.add(stacks.get(i).save(provider, itemTag));
             }
         }
         CompoundTag nbt = new CompoundTag();

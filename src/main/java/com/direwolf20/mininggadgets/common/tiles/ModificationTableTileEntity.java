@@ -12,15 +12,25 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.fml.loading.FMLLoader;
+import org.jspecify.annotations.NonNull;
 
 import javax.annotation.Nullable;
 
 import static com.direwolf20.mininggadgets.setup.Registration.MODIFICATIONTABLE_TILE;
 
 public class ModificationTableTileEntity extends BlockEntity implements MenuProvider {
-    public final ModificationTableHandler handler = new ModificationTableHandler(2, this);
+    public final ModificationTableHandler handler = new ModificationTableHandler(2, this){
+        @Override
+        protected void onContentsChanged(int slot, ItemStack stack) {
+            setChanged();
+        }
+    };
 
     public ModificationTableTileEntity(BlockPos pos, BlockState state) {
         super(MODIFICATIONTABLE_TILE.get(), pos, state);
@@ -32,38 +42,30 @@ public class ModificationTableTileEntity extends BlockEntity implements MenuProv
     }
 
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
-        CompoundTag tag = new CompoundTag();
-        saveAdditional(tag, provider);
-        return tag;
+    public @NonNull CompoundTag getUpdateTag(HolderLookup.@NonNull Provider provider) {
+        return saveCustomOnly(provider);
     }
 
     @Override
-    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider lookupProvider) {
-        this.loadAdditional(tag, lookupProvider);
+    public void handleUpdateTag(@NonNull ValueInput input) {
+        this.loadAdditional(input);
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider lookupProvider) {
-        super.onDataPacket(net, pkt, lookupProvider);
+    protected void loadAdditional(@NonNull ValueInput input) {
+        super.loadAdditional(input);
+        input.child("Inventory").ifPresent(handler::deserialize);
     }
 
     @Override
-    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-        if (tag.contains("Inventory"))
-            handler.deserializeNBT(provider, tag.getCompound("Inventory"));
-        super.loadAdditional(tag, provider);
+    protected void saveAdditional(@NonNull ValueOutput output) {
+        super.saveAdditional(output);
+        handler.serialize(output.child("Inventory"));
     }
 
     @Override
-    public void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-        super.saveAdditional(tag, provider);
-        tag.put("Inventory", handler.serializeNBT(provider));
-    }
-
-    @Override
-    public Component getDisplayName() {
-        return Component.translatable("buildinggadgets2.screen.modificationtable");
+    public @NonNull Component getDisplayName() {
+        return Component.translatable("mininggadgets.screen.modificationtable");
     }
 
 

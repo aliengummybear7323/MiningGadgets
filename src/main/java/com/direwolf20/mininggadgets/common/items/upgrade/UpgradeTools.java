@@ -26,16 +26,17 @@ public class UpgradeTools {
      * use {@link MiningGadget#applyUpgrade(ItemStack, UpgradeCard)} unless you actually require this
      * kind of unchecked functionality
      */
-    private static void setUpgradeNBT(ItemStack tool, UpgradeCard upgrade) {
+    private static ItemStack setUpgradeNBT(ItemStack tool, UpgradeCard upgrade) {
         List<CodecHelpers.UpgradeData> upgradeData = new ArrayList<>(tool.getOrDefault(MGDataComponents.UPGRADE_DATA, new ArrayList<>()));
         CodecHelpers.UpgradeData newUpgrade = new CodecHelpers.UpgradeData(upgrade.getUpgrade().getName(), upgrade.getUpgrade().isEnabled());
         upgradeData.removeIf(k -> k.upgradeName().equals(upgrade.getUpgrade().getName()));
         upgradeData.add(newUpgrade);
-        tool.set(MGDataComponents.UPGRADE_DATA, upgradeData);
+        tool.set(MGDataComponents.UPGRADE_DATA, upgradeData);;
+        return tool;
     }
 
-    public static void setUpgrade(ItemStack tool, UpgradeCard upgrade) {
-        setUpgradeNBT(tool, upgrade);
+    public static ItemStack setUpgrade(ItemStack tool, UpgradeCard upgrade) {
+        return setUpgradeNBT(tool, upgrade);
     }
 
     public static void updateUpgrade(ItemStack tool, Upgrade upgrade) {
@@ -100,21 +101,23 @@ public class UpgradeTools {
     }
 
     public static List<Upgrade> getUpgradesFromTag(CompoundTag tagCompound) {
-        ListTag upgrades = tagCompound.getList(KEY_UPGRADES, Tag.TAG_COMPOUND);
+        //TODO
+        ListTag upgrades = tagCompound.getList(KEY_UPGRADES).get();
 
         List<Upgrade> functionalUpgrades = new ArrayList<>();
+        //TODO
         if (upgrades.isEmpty())
             return functionalUpgrades;
 
         for (int i = 0; i < upgrades.size(); i++) {
-            CompoundTag tag = upgrades.getCompound(i);
+            CompoundTag tag = upgrades.getCompound(i).get();
 
             // Skip unknowns
-            Upgrade type = getUpgradeByName(tag.getString(KEY_UPGRADE));
+            Upgrade type = getUpgradeByName(tag.getString(KEY_UPGRADE).get());
             if( type == null )
                 continue;
 
-            type.setEnabled(!tag.contains(KEY_ENABLED) || tag.getBoolean(KEY_ENABLED));
+            type.setEnabled(!tag.contains(KEY_ENABLED) || tag.getBoolean(KEY_ENABLED).get());
             functionalUpgrades.add(type);
         }
 
@@ -179,10 +182,11 @@ public class UpgradeTools {
      * @implNote note that this is the only instance we use getName for non-eval uses
      * as the gadget stores the full name and not it's base name
      */
-    public static void removeUpgrade(ItemStack tool, Upgrade upgrade) {
+    public static ItemStack removeUpgrade(ItemStack tool, Upgrade upgrade) {
         List<CodecHelpers.UpgradeData> upgradeData = new ArrayList<>(tool.getOrDefault(MGDataComponents.UPGRADE_DATA, new ArrayList<>()));
         upgradeData.removeIf(k -> k.upgradeName().equals(upgrade.getName()));
         tool.set(MGDataComponents.UPGRADE_DATA, upgradeData);
+        return tool;
     }
 
     public static boolean containsUpgrade(ItemStack tool, Upgrade type) {

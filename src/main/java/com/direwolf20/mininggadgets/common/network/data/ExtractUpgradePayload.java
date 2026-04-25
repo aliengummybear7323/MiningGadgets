@@ -6,14 +6,14 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public record ExtractUpgradePayload(
         BlockPos pos,
         String upgrade,
         int nameLength
 ) implements CustomPacketPayload {
-    public static final Type<ExtractUpgradePayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(MiningGadgets.MOD_ID, "extract_upgrade"));
+    public static final Type<ExtractUpgradePayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(MiningGadgets.MOD_ID, "extract_upgrade"));
 
     @Override
     public Type<ExtractUpgradePayload> type() {
