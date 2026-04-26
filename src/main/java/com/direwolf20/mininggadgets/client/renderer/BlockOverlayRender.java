@@ -36,14 +36,14 @@ public class BlockOverlayRender {
         }
 
         List<BlockPos> coords = MiningCollect.collect(mc.player, lookingAt, mc.level, MiningProperties.getRange(item), MiningProperties.getSizeMode(item));
-        Vec3 view = mc.gameRenderer.getMainCamera().getPosition();
+        Vec3 view = mc.gameRenderer.getMainCamera().position();
 
         PoseStack matrix = event.getPoseStack();
         matrix.pushPose();
         matrix.translate(-view.x(), -view.y(), -view.z());
 
         VertexConsumer builder;
-        builder = buffer.getBuffer(MyRenderType.BlockOverlay);
+        builder = buffer.getBuffer(MyRenderType.BLOCK_OVERLAY);
         coords.forEach(e -> {
             if (mc.level.getBlockState(e).getBlock() != Registration.RENDER_BLOCK.get()) {
 
@@ -59,8 +59,8 @@ public class BlockOverlayRender {
             }
         });
         matrix.popPose();
-        RenderSystem.disableDepthTest();
-        buffer.endBatch(MyRenderType.BlockOverlay);
+//        RenderSystem.disableDepthTest();
+        buffer.endBatch(MyRenderType.BLOCK_OVERLAY);
     }
 
     public static void render(Matrix4f matrix, VertexConsumer builder, BlockPos pos, Color color) {

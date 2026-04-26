@@ -14,20 +14,13 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.PushReaction;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import org.jspecify.annotations.NonNull;
 
 import javax.annotation.Nullable;
 
 public class RenderBlock extends Block implements EntityBlock {
-    public RenderBlock() {
-        super(
-                Properties.of()
-                        .strength(50.0F, 1200.0F)
-                        .noOcclusion()
-                        .pushReaction(PushReaction.BLOCK)
-                        .isRedstoneConductor((a, b, c) -> false) // @mcp: setOpaque seems to replace isNormalBlock
-        );
+    public RenderBlock(Properties properties) {
+        super(properties);
     }
 
     @Nullable
@@ -49,18 +42,17 @@ public class RenderBlock extends Block implements EntityBlock {
      */
     @Override
     @SuppressWarnings("deprecation")
-    public RenderShape getRenderShape(BlockState state) {
+    public @NonNull RenderShape getRenderShape(BlockState state) {
         // We still make effect blocks invisible because all effects (scaling block, transparent box) are dynamic so they has to be in the TER
         return RenderShape.INVISIBLE;
     }
 
     @Override
-    public int getLightBlock(BlockState state, BlockGetter worldIn, BlockPos pos) {
+    public int getLightEmission(BlockState state, BlockGetter level, BlockPos pos) {
         return 0;
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public float getShadeBrightness(BlockState state, BlockGetter worldIn, BlockPos pos) {
         return 1.0f;
     }

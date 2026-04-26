@@ -5,14 +5,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 public record InsertUpgradePayload(
         BlockPos pos,
         ItemStack upgrade
 ) implements CustomPacketPayload {
-    public static final Type<InsertUpgradePayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(MiningGadgets.MOD_ID, "insert_upgrade"));
+    public static final Type<InsertUpgradePayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(MiningGadgets.MOD_ID, "insert_upgrade"));
 
     @Override
     public Type<InsertUpgradePayload> type() {

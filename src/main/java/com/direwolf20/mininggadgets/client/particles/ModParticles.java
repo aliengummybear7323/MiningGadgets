@@ -18,7 +18,5 @@ public class ModParticles {
 
     public static final DeferredHolder<ParticleType<?>, LaserParticleType> LASERPARTICLE = PARTICLE_TYPES.register("laserparticle", () -> new LaserParticleType(false));
     public static final DeferredHolder<ParticleType<?>, PlayerParticleType> PLAYERPARTICLE = PARTICLE_TYPES.register("playerparticle", () -> new PlayerParticleType(false));
-    //public static final Supplier<ParticleType<LaserParticleData>> LASERPARTICLE = PARTICLE_TYPES.register("laserparticle", LaserParticleType::new);
-    //public static final Supplier<ParticleType<PlayerParticleData>> PLAYERPARTICLE = PARTICLE_TYPES.register("playerparticle", PlayerParticleType::new);
     public static final Supplier<ParticleType<SimpleParticleType>> LIGHT_PARTICLE = PARTICLE_TYPES.register("light_particle", LightParticleType::new);
 }

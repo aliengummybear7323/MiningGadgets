@@ -9,32 +9,31 @@ import com.direwolf20.mininggadgets.setup.Registration;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
-import mezz.jei.api.ingredients.subtypes.IIngredientSubtypeInterpreter;
+import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@MethodsReturnNonnullByDefault
 @SuppressWarnings("unused")
 @JeiPlugin
 public class MiningGadgetsJEI implements IModPlugin {
     @Override
-    public ResourceLocation getPluginUid() {
-        return ResourceLocation.fromNamespaceAndPath(MiningGadgets.MOD_ID, "jei_plugin");
+    public @NonNull Identifier getPluginUid() {
+        return Identifier.fromNamespaceAndPath(MiningGadgets.MOD_ID, "jei_plugin");
     }
 
     @Override
     public void registerItemSubtypes(ISubtypeRegistration registration) {
-        IIngredientSubtypeInterpreter<ItemStack> chargedProvider = (stack, uid) -> {
+        ISubtypeInterpreter<ItemStack> chargedProvider = (stack, uid) -> {
             if (!(stack.getItem() instanceof MiningGadget)) {
-                return IIngredientSubtypeInterpreter.NONE;
+                return ItemStack.EMPTY;
             }
 
             int energy = stack.getOrDefault(MGDataComponents.FORGE_ENERGY, 0);
@@ -44,7 +43,7 @@ public class MiningGadgetsJEI implements IModPlugin {
                 return "charged";
             }
 
-            return IIngredientSubtypeInterpreter.NONE;
+            return ItemStack.EMPTY;
         };
 
         registration.registerSubtypeInterpreter(Registration.MININGGADGET.get(), chargedProvider);
@@ -59,7 +58,7 @@ public class MiningGadgetsJEI implements IModPlugin {
 
     private static class ModificationTableContainerHandler implements IGuiContainerHandler<ModificationTableScreen> {
         @Override
-        public List<Rect2i> getGuiExtraAreas(ModificationTableScreen containerScreen) {
+        public @NonNull List<Rect2i> getGuiExtraAreas(ModificationTableScreen containerScreen) {
             return new ArrayList<>(Collections.singleton(new Rect2i((containerScreen.width / 2) - 120, (containerScreen.height / 2) - 5, 25, 35)));
         }
     }

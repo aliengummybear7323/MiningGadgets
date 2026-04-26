@@ -5,14 +5,14 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 public record GhostSlotPayload(
         int slotNumber,
         ItemStack stack
 ) implements CustomPacketPayload {
-    public static final Type<GhostSlotPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(MiningGadgets.MOD_ID, "ghost_slot"));
+    public static final Type<GhostSlotPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(MiningGadgets.MOD_ID, "ghost_slot"));
 
     @Override
     public Type<GhostSlotPayload> type() {
